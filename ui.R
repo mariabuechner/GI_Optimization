@@ -12,7 +12,7 @@ shinyUI(fluidPage(
                  numericInput("designEnergy", label = h5("Design energy"),
                               value = 20, min = 20, max = 120),
                  numericInput("talbotOrder", label = h5("Talbot Order"),
-                              value = 1, min = 1, max = 7, step = 2),
+                              value = 1, min = 1, max = 9, step = 1),
                  checkboxInput("piHalfShift", label = "pi-half shift", value = FALSE),
                  selectInput("geometry", label = h5("GI geometry"),
                              choices = list("Conventional", "Symmetrical", "Inverse"), selected = "Inverse"),
@@ -23,24 +23,37 @@ shinyUI(fluidPage(
                  conditionalPanel(
                    condition = "input.geometry == 'Conventional' || input.geometry == 'Symmetrical'",
                    numericInput("g2Pitch", label = h5("G2 pitch [um]"), value = 2, min = 1, step = 0.005)),
-                 fluidRow(
-                   column(7, selectInput("fixedLength", label = h5("Fixed length"), 
-                                         choices = list("System legth" = 1, "G0 to G1 distance" = 2, "G1 to G2 distance" = 3), selected = 1)),
-                   column(5, conditionalPanel( 
-                     condition = "input.fixedLength == 1",
-                     numericInput("systemLength", label = h5("[mm]"), value = 1000, min = 1, step = 1)),
-                     conditionalPanel( 
-                       condition = "input.fixedLength == 2",
-                       numericInput("G0G1Length", label = h5("[mm]"), value = 200, min = 1, step = 1)),
-                     conditionalPanel( 
-                       condition = "input.fixedLength == 3",
-                       numericInput("G1G2Length", label = h5("[mm]"), value = 200, min = 1, step = 1))))
+                 conditionalPanel(
+                   condition = "input.geometry == 'Conventional' || input.geometry == 'Inverse'",
+                   fluidRow(
+                     column(7, selectInput("fixedLength", label = h5("Fixed length"), 
+                                           choices = list("System legth" = 1, "G0 to G1 distance" = 2, "G1 to G2 distance" = 3), selected = 1)),
+                     column(5, conditionalPanel( 
+                       condition = "input.fixedLength == 1",
+                       numericInput("systemLength", label = h5("[mm]"), value = 1000, min = 1, step = 1)),
+                       conditionalPanel( 
+                         condition = "input.fixedLength == 2",
+                         numericInput("G0G1Length", label = h5("[mm]"), value = 200, min = 1, step = 1)),
+                       conditionalPanel( 
+                         condition = "input.fixedLength == 3",
+                         numericInput("G1G2Length", label = h5("[mm]"), value = 200, min = 1, step = 1)))))
                  ),
     
     mainPanel(
       tabsetPanel(
         tabPanel(h4("Geometry"),
-                 imageOutput("geometryImage")),
+                 imageOutput("geometryImage"),
+                 fluidRow(
+                   column(3, textOutput("p0")),
+                   column(3, textOutput("p1")),
+                   column(3, textOutput("p2"))
+                 ),
+                 textOutput("talbotDistance"),
+                 fluidRow(
+                   column(3, textOutput("l")),
+                   column(3, textOutput("d")),
+                   column(3, textOutput("s"))
+                 )),
         tabPanel(h4("Filter and sample"),
                  tabsetPanel(
                    tabPanel(h4("Filter"),

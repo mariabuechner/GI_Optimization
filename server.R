@@ -37,6 +37,28 @@ shinyServer(function(input, output) {
     
   }, deleteFile = FALSE)
   
+  output$p0 <- renderText({
+    paste("G0 pitch [um]:", inputGI()$p0)
+  })
+  output$p1 <- renderText({
+    paste("G1 pitch [um]:", inputGI()$p1)
+  })
+  output$p2 <- renderText({
+    paste("G2 pitch [um]:", inputGI()$p2)
+  })
+  output$talbotDistance <- renderText({
+    paste("Talbot distance [mm]:", inputGI()$talbotDistance)
+  })
+  output$l <- renderText({
+    paste("l (distance G0 to G1) [mm]:", inputGI()$G0G1)
+  })
+  output$d <- renderText({
+    paste("d (distance G1 to G2) [mm]:", inputGI()$G1G2)
+  })
+  output$s <- renderText({
+    paste("s (total system length) [mm]:", inputGI()$systemLength)
+  })
+  
   ################################################
   # Filter and sample #
   
