@@ -8,5 +8,5 @@ library(Cairo)
 options(shiny.usecairo=T)
 
 source('geometry.R')
-source("filtering.R")
+source('filtering.R')
 source('visibility.R')

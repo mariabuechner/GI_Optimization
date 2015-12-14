@@ -3,9 +3,39 @@ source('GI_Optimization.R')
 shinyServer(function(input, output) {
   # Geometry #
   
-  # 
+  # Calculate all GI parameters
+  inputGI <- reactive({
+    # Select samlles pitch based on geometry type
+    if (input$geometry == "Inverse") {
+      smallestPitch = input$g0Pitch
+    }
+    else {
+      smallestPitch = input$g2Pitch
+    }
+    # Select fixed lenght based on preference
+    if (input$fixedLength == 1) {
+      fixedLength = input$systemLength
+    } else if (input$fixedLength == 2) {
+      fixedLength = input$G0G1Length
+    } else {
+      fixedLength = input$G1G2Length
+    }
+    # Returns list with all params inside
+    geometry.calcParameters(input$designEnergy, input$talbotOrder, input$geometry, smallestPitch,
+                            input$fixedLength, fixedLength, input$piHalfShift)
+  })
   
   # Output:
+  output$geometryImage <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('./www',
+                                        paste(input$geometry, '.jpg', sep='')))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         height = 300)
+    
+  }, deleteFile = FALSE)
   
   ################################################
   # Filter and sample #
@@ -21,6 +51,16 @@ shinyServer(function(input, output) {
   # Filter spectrum
   filterSpectrum <- reactive({
     filtering.filterEnergies(inputFilter(), input$filterThickness, inputSpectrum()$energy, inputSpectrum()$photons)
+  })
+  
+  # Get current spectrum
+  currentSpectrum <- reactive({
+    if (input$includeFilterVisibility == TRUE) {
+      filterSpectrum()
+    }
+    else {
+      inputSpectrum()
+    }
   })
   
   # Output:
@@ -39,13 +79,13 @@ shinyServer(function(input, output) {
   
   # Calc visibilities
   visibilities <- reactive({
-    visibility.calcVisibilities(input$designEnergy, input$talbotOrder, inputSpectrum()$energy, inputSpectrum()$photons)
+    visibility.calcVisibilities(input$designEnergy, input$talbotOrder, currentSpectrum()$energy, currentSpectrum()$photons)
   })
   
   # Output:
   
   output$Spectrum <- renderPlot({
-    ggplot(inputSpectrum(),
+    ggplot(currentSpectrum(),
            aes_string(x='energy', y='photons'))+
       geom_bar(width=.5, stat="identity", fill='blue')+
       scale_y_continuous(labels=percent)+
@@ -57,11 +97,11 @@ shinyServer(function(input, output) {
     percent(visibility.maxVisibility(visibilities()))
   })
   output$MeanEnergy <- renderText({
-    mean(inputSpectrum()$energy*inputSpectrum()$photons*100)
+    mean(currentSpectrum()$energy*currentSpectrum()$photons*100)
   })
   
   output$Visibility <- renderPlot({
-    visibilityInput = cbind(inputSpectrum()['energy'], vis = visibilities())
+    visibilityInput = cbind(currentSpectrum()['energy'], vis = visibilities())
     ggplot(visibilityInput,
            aes_string(x='energy', y='vis'))+
       geom_bar(width=.5, stat="identity", fill='blue')+
@@ -71,8 +111,8 @@ shinyServer(function(input, output) {
   })
   
   output$MaxVisibilities <- renderPlot({
-    MaximumVisibilities = visibility.MaxVisibilityEnergies(input$talbotOrder, inputSpectrum()$energy, inputSpectrum()$photons)
-    maxVisibilityInput = cbind(inputSpectrum()['energy'], maxVis = MaximumVisibilities)
+    MaximumVisibilities = visibility.MaxVisibilityEnergies(input$talbotOrder, currentSpectrum()$energy, currentSpectrum()$photons)
+    maxVisibilityInput = cbind(currentSpectrum()['energy'], maxVis = MaximumVisibilities)
     ggplot(maxVisibilityInput,
            aes_string(x='energy', y='maxVis'))+
       geom_bar(width=.5, stat="identity", fill='blue')+
@@ -82,7 +122,8 @@ shinyServer(function(input, output) {
   })
   
   output$OptTablotOrders <- renderDataTable({
-    maxVisibilityTable = visibility.MaxVisibilityTalbots(list(1, 3, 5, 7), input$designEnergy, inputSpectrum()$energy, inputSpectrum()$photons)
+    maxVisibilityTable = visibility.MaxVisibilityTalbots(list(1, 3, 5, 7), input$designEnergy,
+                                                         currentSpectrum()$energy, currentSpectrum()$photons)
   },
   options = 
     list(searching=FALSE, paging=FALSE, info=FALSE))

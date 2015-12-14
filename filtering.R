@@ -1,6 +1,12 @@
 filters = list.files(path="filters", pattern="*.csv")
 
 filtering.readFilter <- function(inputFile) {
+  # inputFile: .csv file according to the followng format
+  # energy,mu,density
+  # 10,2.623e+1,2.70
+  # 15,7.955e+0
+  # 20,3.441e+0
+  # ...,...
   filePath = sprintf("filters/%s", inputFile)
   inputFilter = read.csv(filePath) # 3 columns labeled 'energy' [keV] and 'mu' [cm2/g] and 'density' [g/cm3]
   return(inputFilter)
