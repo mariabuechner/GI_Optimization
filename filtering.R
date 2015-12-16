@@ -1,4 +1,5 @@
 filters = list.files(path="filters", pattern="*.csv")
+samples = list.files(path="samples", pattern="*.csv")
 
 filtering.readFilter <- function(inputFile) {
   # inputFile: .csv file according to the followng format

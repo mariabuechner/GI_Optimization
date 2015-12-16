@@ -12,17 +12,10 @@ shinyServer(function(input, output) {
     else {
       smallestPitch = input$g2Pitch
     }
-    # Select fixed lenght based on preference
-    if (input$fixedLength == 1) {
-      fixedLength = input$systemLength
-    } else if (input$fixedLength == 2) {
-      fixedLength = input$G0G1Length
-    } else {
-      fixedLength = input$G1G2Length
-    }
+    
     # Returns list with all params inside
     geometry.calcParameters(input$designEnergy, input$talbotOrder, input$geometry, smallestPitch,
-                            input$fixedLength, fixedLength, input$piHalfShift)
+                            input$G0G1Length, input$piHalfShift)
   })
   
   # Output:
@@ -37,27 +30,43 @@ shinyServer(function(input, output) {
     
   }, deleteFile = FALSE)
   
-  output$p0 <- renderText({
-    paste("G0 pitch [um]:", inputGI()$p0)
+  outputPitches <- reactive({
+    pitches = data.frame(inputGI()$p0, inputGI()$p1, inputGI()$p2)
+    colnames(pitches) <- c("p0 [um]", "p1 [um]", "p3 [um]")
+    return(pitches)
   })
-  output$p1 <- renderText({
-    paste("G1 pitch [um]:", inputGI()$p1)
+  outputDistances <- reactive({
+    distances = data.frame(inputGI()$G0G1, inputGI()$G1G2, inputGI()$systemLength)
+    colnames(distances) <- c("l [mm]", "d [mm]", "s [mm]")
+    return(distances)
   })
-  output$p2 <- renderText({
-    paste("G2 pitch [um]:", inputGI()$p2)
-  })
-  output$talbotDistance <- renderText({
-    paste("Talbot distance [mm]:", inputGI()$talbotDistance)
-  })
-  output$l <- renderText({
-    paste("l (distance G0 to G1) [mm]:", inputGI()$G0G1)
-  })
-  output$d <- renderText({
-    paste("d (distance G1 to G2) [mm]:", inputGI()$G1G2)
-  })
-  output$s <- renderText({
-    paste("s (total system length) [mm]:", inputGI()$systemLength)
-  })
+  output$pitchTable <- renderTable({
+    outputPitches()
+  }, include.rownames=FALSE)
+  output$distancesTable <- renderTable({
+    outputDistances()
+  }, include.rownames=FALSE)
+#   output$p0 <- renderText({
+#     paste("G0 pitch [um]:", inputGI()$p0)
+#   })
+#   output$p1 <- renderText({
+#     paste("G1 pitch [um]:", inputGI()$p1)
+#   })
+#   output$p2 <- renderText({
+#     paste("G2 pitch [um]:", inputGI()$p2)
+#   })
+#   output$talbotDistance <- renderText({
+#     paste("Talbot distance [mm]:", inputGI()$talbotDistance)
+#   })
+#   output$l <- renderText({
+#     paste("l (distance G0 to G1) [mm]:", inputGI()$G0G1)
+#   })
+#   output$d <- renderText({
+#     paste("d (distance G1 to G2) [mm]:", inputGI()$G1G2)
+#   })
+#   output$s <- renderText({
+#     paste("s (total system length) [mm]:", inputGI()$systemLength)
+#   })
   
   ################################################
   # Filter and sample #
@@ -66,26 +75,45 @@ shinyServer(function(input, output) {
   inputSpectrum <- reactive({
     visibility.readSpectrum(input$spectrum)
   })
-  # Read filter
+  # Filter
   inputFilter <- reactive({
     filtering.readFilter(input$filter)
   })
-  # Filter spectrum
   filterSpectrum <- reactive({
     filtering.filterEnergies(inputFilter(), input$filterThickness, inputSpectrum()$energy, inputSpectrum()$photons)
   })
   
+#   # Sample
+#   inputSample <- reactive({
+#     filtering.readFilter(input$sample)
+#   })
+#   sampleSpectrum <- reactive({
+#     filtering.filterEnergies(filterSpectrum(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
+#   })
+  
   # Get current spectrum
   currentSpectrum <- reactive({
+    spectrum = inputSpectrum()
     if (input$includeFilterVisibility == TRUE) {
-      filterSpectrum()
+      spectrum = filterSpectrum()
     }
-    else {
-      inputSpectrum()
-    }
+#     if (input$includeSampleVisibility == TRUE) {
+#       spectrum = sampleSpectrum()
+#     }
+    return(spectrum)
   })
   
   # Output:
+  
+  output$MeanEnergy <- renderText({
+    mean(inputSpectrum()$energy*inputSpectrum()$photons*100)
+  })
+  output$filterMeanEnergy <- renderText({
+    mean(filterSpectrum()$energy*filterSpectrum()$photons*100)
+  })
+#   output$sampleMeanEnergy <- renderText({
+#     mean(sampleSpectrum()$energy*sampleSpectrum()$photons*100)
+#   })
   
   output$filteredSpectrum <- renderPlot({
     ggplot(NULL, aes_string(x='energy', y='photons')) +
@@ -94,6 +122,13 @@ shinyServer(function(input, output) {
       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
       geom_bar(aes(fill = "Filtered"), data = filterSpectrum(), width=.5, stat="identity", fill='red')
   })
+#   output$sampledSpectrum <- renderPlot({
+#     ggplot(NULL, aes_string(x='energy', y='photons')) +
+#       scale_y_continuous(labels=percent) +
+#       labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("Filtered X-ray spectrum ", omega,"(",epsilon,")"))) +
+#       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
+#       geom_bar(aes(fill = "Sample"), data = sampleSpectrum(), width=.5, stat="identity", fill='red')
+#   })
   
   ################################################
 
@@ -117,9 +152,6 @@ shinyServer(function(input, output) {
   
   output$MaximumVisibility <- renderText({
     percent(visibility.maxVisibility(visibilities()))
-  })
-  output$MeanEnergy <- renderText({
-    mean(currentSpectrum()$energy*currentSpectrum()$photons*100)
   })
   
   output$Visibility <- renderPlot({
