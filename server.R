@@ -82,6 +82,19 @@ shinyServer(function(input, output) {
     return(calcTotalSystemLength()-sourceToDetector)
   })
   
+  output$transversalCoherenceLength <- renderText({
+    # wavelength [um] * G0G1Distance [mm] / sourceSize [um]
+    geometry.calcWavelength(input$designEnergy) * inputGI()$G0G1*1000 / (inputGI()$p0 / 2)
+  })
+  output$beamSeperation <- renderText({
+    # TalbotOrder * p1 / 4 [um]
+    input$talbotOrder * inputGI()$p1 / 4
+  })
+  
+#   output$waveLengthUM <- renderText({
+#     geometry.calcWavelength(input$designEnergy)
+#   })
+  
   ################################################
   # Filter and sample #
   
@@ -91,7 +104,7 @@ shinyServer(function(input, output) {
   })
   # Filter
   inputFilter <- reactive({
-    filtering.readFilter(input$filter)
+    filtering.readFilter(paste("filters/",input$filter,sep=""))
   })
   filterSpectrum <- reactive({
     filtering.filterEnergies(inputFilter(), input$filterThickness, inputSpectrum()$energy, inputSpectrum()$photons)
@@ -99,10 +112,10 @@ shinyServer(function(input, output) {
   
   # Sample
   inputSample <- reactive({
-    filtering.readFilter(input$sample)
+    filtering.readFilter(paste("samples/",input$sample,sep=""))
   })
   sampleSpectrum <- reactive({
-    filtering.filterEnergies(inputFilter(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
+    filtering.filterEnergies(inputSample(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
   })
   
   # Get current spectrum
@@ -120,27 +133,40 @@ shinyServer(function(input, output) {
   # Output:
   
   output$MeanEnergy <- renderText({
-    mean(inputSpectrum()$energy*inputSpectrum()$photons*100)
+    sum(inputSpectrum()$energy*inputSpectrum()$photons)/sum(inputSpectrum()$photons)
   })
   output$filterMeanEnergy <- renderText({
-    mean(filterSpectrum()$energy*filterSpectrum()$photons*100)
+    sum(filterSpectrum()$energy*filterSpectrum()$photons)/sum(filterSpectrum()$photons)
   })
   output$sampleMeanEnergy <- renderText({
-    mean(sampleSpectrum()$energy*sampleSpectrum()$photons*100)
+    sum(sampleSpectrum()$energy*sampleSpectrum()$photons)/sum(sampleSpectrum()$photons)
   })
   
-  output$filteredSpectrum <- renderPlot({
+  output$filteredSpectrumCompared <- renderPlot({
     ggplot(NULL, aes_string(x='energy', y='photons')) +
       scale_y_continuous(labels=percent) +
       labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("Filtered X-ray spectrum ", omega,"(",epsilon,")"))) +
       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
       geom_bar(aes(fill = "Filtered"), data = filterSpectrum(), width=.5, stat="identity", fill='red')
   })
-  output$sampledSpectrum <- renderPlot({
+  output$filteredSpectrum <- renderPlot({
+    ggplot(NULL, aes_string(x='energy', y='photons')) +
+      scale_y_continuous(labels=percent) +
+      labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("X-ray spectrum after filter ", omega,"(",epsilon,")"))) +
+      geom_bar(aes(fill = "Filtered"), data = filterSpectrum(), width=.5, stat="identity", fill='red')
+  })
+  
+  output$sampledSpectrumCompared <- renderPlot({
     ggplot(NULL, aes_string(x='energy', y='photons')) +
       scale_y_continuous(labels=percent) +
       labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("Filtered X-ray spectrum ", omega,"(",epsilon,")"))) +
       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
+      geom_bar(aes(fill = "Sample"), data = sampleSpectrum(), width=.5, stat="identity", fill='red')
+  })
+  output$sampledSpectrum <- renderPlot({
+    ggplot(NULL, aes_string(x='energy', y='photons')) +
+      scale_y_continuous(labels=percent) +
+      labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("X-ray spectrum after filter and sample ", omega,"(",epsilon,")"))) +
       geom_bar(aes(fill = "Sample"), data = sampleSpectrum(), width=.5, stat="identity", fill='red')
   })
   
@@ -195,5 +221,18 @@ shinyServer(function(input, output) {
   },
   options = 
     list(searching=FALSE, paging=FALSE, info=FALSE))
+  
+  ############ PERFORMANCE ##########################
+  
+  output$raupachImage <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('./www',
+                                        paste("RaupachAdapted", '.jpg', sep='')))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         height = 200)
+    
+  }, deleteFile = FALSE)
   
 })

@@ -10,7 +10,7 @@ shinyUI(fluidPage(
                  h4("Select interferometer settings"),
                  h5("Default is cone beam, inverse geometry with pi-shift phase grating"),
                  numericInput("designEnergy", label = h5("Design energy"),
-                              value = 20, min = 20, max = 120),
+                              value = 45, min = 20, max = 120),
                  numericInput("talbotOrder", label = h5("Talbot Order"),
                               value = 1, min = 1, max = 9, step = 1),
                  checkboxInput("piHalfShift", label = "pi-half shift", value = FALSE),
@@ -45,7 +45,7 @@ shinyUI(fluidPage(
                    column(3, numericInput("sampleDiameter", label = h5("Sample diameter [mm]"), value = 200, min = 0.1, step = 0.1))
                  ),
                  fluidRow(
-                   h5("With the sample at the isocetner between source (focal spot) and detector plane:")
+                   h5("With the sample at the isocenter between source (focal spot) and detector plane:")
                  ),
                  fluidRow(
                    column(3, h5("Total length from source to detector [mm]:")),
@@ -54,17 +54,23 @@ shinyUI(fluidPage(
                  fluidRow(
                    column(3, textOutput("totalSystemLength")),
                    column(3, textOutput("g2DetectorDistance"))
-                 )
+                 ),
+                 br(),
+                 fluidRow(
+                   h5("G0 performance:")
+                 ),
+                 fluidRow(
+                   column(3, h5("Transversal coherence length [um]:")),
+                   column(3, h5("must be larger than (2x)")),
+                   column(3, h5("Seperation of interference beams [um]:"))
+                 ),
+                 fluidRow(
+                   column(3, textOutput("transversalCoherenceLength")),
+                   column(3, h5("")),
+                   column(3, textOutput("beamSeperation"))
+                 )#,
 #                  fluidRow(
-#                    column(3, textOutput("p0")),
-#                    column(3, textOutput("p1")),
-#                    column(3, textOutput("p2"))
-#                  ),
-#                  textOutput("talbotDistance"),
-#                  fluidRow(
-#                    column(3, textOutput("l")),
-#                    column(3, textOutput("d")),
-#                    column(3, textOutput("s"))
+#                    column(3, textOutput("waveLengthUM"))
 #                  )
                  ),
         tabPanel(h4("Filter and sample"),
@@ -85,6 +91,7 @@ shinyUI(fluidPage(
                                          choices = filters, selected = 1)),
                               column(6, numericInput("filterThickness", label = h5("Thickness [mm]"), 
                                           value = 0.0, min = 0.0, step = 0.01))),
+                            plotOutput("filteredSpectrumCompared"),
                             plotOutput("filteredSpectrum")
                             ),
                    tabPanel(h4("Sample"),
@@ -97,11 +104,12 @@ shinyUI(fluidPage(
                                                     choices = samples, selected = 1)),
                               column(6, numericInput("sampleThickness", label = h5("Thickness [mm]"), 
                                                      value = 0.0, min = 0.0, step = 0.1))),
+                            plotOutput("sampledSpectrumCompared"),
                             plotOutput("sampledSpectrum"))
                    )
                  ),
         tabPanel(h4("Visibility"),
-                 h5("Add choises for vis calc? ggf than also source size (projected...)?"),
+                 h5("Add choises for vis calc?, also currently vis independent og pi or pi-half phsae grating..."),
                  fluidRow(
                    column(3, checkboxInput("includeFilterVisibility", label = "Add filter", value = FALSE)),
                    column(3, checkboxInput("includeSampleVisibility", label = "Add sample", value = FALSE))),
@@ -122,16 +130,33 @@ shinyUI(fluidPage(
                    tabPanel(h4("Talbot Carpet"),
                             h5("Show interference pattern at talbot distance for whole spectrum, and sum. 
                                allow selection of filter and sample"))
+                 )),
+        tabPanel(h4("Performance"),
+                 h4("System information"),
+                 fluidRow(
+                   column(3, selectInput("tissueSample", label = h5("Tissue sample"), 
+                                         choices = samples, selected = 1)),
+                   column(3, numericInput("pixelSize", label = h5("Pixel size a [um]"),
+                                          value = 75, min = 1, step = 1)),
+                   column(3, numericInput("absorptionEnergy", label = h5("Absorption energy Ep [keV]"),
+                                          value = 54, min = 15, max = 100))
                  ),
-                 tabPanel(h4("Sensitivity")),
-                 tabPanel(h4("Phase vs. Absorption CT"))),
-        tabPanel(h4("CT Performance"),
-                 h5("Add Raupach calc here, with filter and sample checkboxes. Add inprovements! 
-                    And add source to detector and sample distances as options (compatible with GI setup?!)"),
                  tabsetPanel(
-                   tabPanel(h4("Source and Detector")),
-                   tabPanel(h4("Absorptiond and phase comparision"))
-                 )))
+                   tabPanel(h4("General"),
+                            h5("Add sensitivity, maybe CNR etc. here...")
+                            ),
+                   tabPanel(h4("CT"),
+#                             h5("Add Raupach calc here, with filter and sample checkboxes. Add inprovements! 
+#                               And add source to detector and sample distances as options (compatible with GI setup?!)"),
+                            h4("Parameters:"),
+                            fluidRow(
+                              column(3, numericInput("postAttenuationFactor", label = h5("Post-sample attenuation factor f ]1...2]"),
+                                                     value = 2, min = 1.01, max = 2, step = 0.01)),
+                              column(3, numericInput("reconstructionFactor", label = h5("Recostruction resolution factor gA ]0...0.5]"),
+                                                     value = 0.3, min = 0.01, max = 0.5, step = 0.01))
+                            ),
+                            imageOutput("raupachImage")
+                 ))))
     )
     
   )))
