@@ -68,6 +68,20 @@ shinyServer(function(input, output) {
 #     paste("s (total system length) [mm]:", inputGI()$systemLength)
 #   })
   
+  calcTotalSystemLength <- reactive({
+    samplePosition = input$sourceG0Distance + inputGI()$G0G1 + input$g1SampleDistance + input$sampleDiameter/2
+    return(2*samplePosition)
+  })
+  
+  output$totalSystemLength <- renderText({
+    calcTotalSystemLength()
+  })
+  
+  output$g2DetectorDistance <- renderText({
+    sourceToDetector = inputGI()$systemLength + input$sourceG0Distance
+    return(calcTotalSystemLength()-sourceToDetector)
+  })
+  
   ################################################
   # Filter and sample #
   

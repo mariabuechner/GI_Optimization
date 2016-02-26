@@ -38,6 +38,22 @@ shinyUI(fluidPage(
                  fluidRow(
                    column(3, tableOutput("pitchTable")),
                    column(3, tableOutput("distancesTable"))
+                 ),
+                 fluidRow(
+                   column(3, numericInput("sourceG0Distance", label = h5("Source to G0 distance [mm]"), value = 100, min = 10, step = 1)),
+                   column(3, numericInput("g1SampleDistance", label = h5("G1 to sample distance [mm]"), value = 10, min = 1, step = 1)),
+                   column(3, numericInput("sampleDiameter", label = h5("Sample diameter [mm]"), value = 200, min = 0.1, step = 0.1))
+                 ),
+                 fluidRow(
+                   h5("With the sample at the isocetner between source (focal spot) and detector plane:")
+                 ),
+                 fluidRow(
+                   column(3, h5("Total length from source to detector [mm]:")),
+                   column(3, h5("G2 to detector distance [mm]:"))
+                 ),
+                 fluidRow(
+                   column(3, textOutput("totalSystemLength")),
+                   column(3, textOutput("g2DetectorDistance"))
                  )
 #                  fluidRow(
 #                    column(3, textOutput("p0")),
@@ -85,6 +101,7 @@ shinyUI(fluidPage(
                    )
                  ),
         tabPanel(h4("Visibility"),
+                 h5("Add choises for vis calc? ggf than also source size (projected...)?"),
                  fluidRow(
                    column(3, checkboxInput("includeFilterVisibility", label = "Add filter", value = FALSE)),
                    column(3, checkboxInput("includeSampleVisibility", label = "Add sample", value = FALSE))),
