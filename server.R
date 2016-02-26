@@ -97,13 +97,13 @@ shinyServer(function(input, output) {
     filtering.filterEnergies(inputFilter(), input$filterThickness, inputSpectrum()$energy, inputSpectrum()$photons)
   })
   
-#   # Sample
-#   inputSample <- reactive({
-#     filtering.readFilter(input$sample)
-#   })
-#   sampleSpectrum <- reactive({
-#     filtering.filterEnergies(filterSpectrum(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
-#   })
+  # Sample
+  inputSample <- reactive({
+    filtering.readFilter(input$sample)
+  })
+  sampleSpectrum <- reactive({
+    filtering.filterEnergies(inputFilter(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
+  })
   
   # Get current spectrum
   currentSpectrum <- reactive({
@@ -111,9 +111,9 @@ shinyServer(function(input, output) {
     if (input$includeFilterVisibility == TRUE) {
       spectrum = filterSpectrum()
     }
-#     if (input$includeSampleVisibility == TRUE) {
-#       spectrum = sampleSpectrum()
-#     }
+    if (input$includeSampleVisibility == TRUE) {
+      spectrum = sampleSpectrum()
+    }
     return(spectrum)
   })
   
@@ -125,9 +125,9 @@ shinyServer(function(input, output) {
   output$filterMeanEnergy <- renderText({
     mean(filterSpectrum()$energy*filterSpectrum()$photons*100)
   })
-#   output$sampleMeanEnergy <- renderText({
-#     mean(sampleSpectrum()$energy*sampleSpectrum()$photons*100)
-#   })
+  output$sampleMeanEnergy <- renderText({
+    mean(sampleSpectrum()$energy*sampleSpectrum()$photons*100)
+  })
   
   output$filteredSpectrum <- renderPlot({
     ggplot(NULL, aes_string(x='energy', y='photons')) +
@@ -136,13 +136,13 @@ shinyServer(function(input, output) {
       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
       geom_bar(aes(fill = "Filtered"), data = filterSpectrum(), width=.5, stat="identity", fill='red')
   })
-#   output$sampledSpectrum <- renderPlot({
-#     ggplot(NULL, aes_string(x='energy', y='photons')) +
-#       scale_y_continuous(labels=percent) +
-#       labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("Filtered X-ray spectrum ", omega,"(",epsilon,")"))) +
-#       geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
-#       geom_bar(aes(fill = "Sample"), data = sampleSpectrum(), width=.5, stat="identity", fill='red')
-#   })
+  output$sampledSpectrum <- renderPlot({
+    ggplot(NULL, aes_string(x='energy', y='photons')) +
+      scale_y_continuous(labels=percent) +
+      labs(x="Energy [keV]",y="Photon density / 1.0 [kev]",title=expression(paste("Filtered X-ray spectrum ", omega,"(",epsilon,")"))) +
+      geom_bar(aes(fill = "Original"), data = inputSpectrum(), width=.5, stat="identity", fill='blue') +
+      geom_bar(aes(fill = "Sample"), data = sampleSpectrum(), width=.5, stat="identity", fill='red')
+  })
   
   ################################################
 
