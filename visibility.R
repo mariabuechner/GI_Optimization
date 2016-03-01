@@ -11,7 +11,15 @@ visibility.readSpectrum <- function(inputFile) {
 visibility.calcVisibilities <- function(designEnergy, talbotOrder, energies, photons) {
   # Calculate normalized visibility for specific Talbot order, design energy. For all energies and number of photons
   visibilities = (2/pi)*abs(sin((pi/2)*(designEnergy/energies))^2*sin((pi/2)*(talbotOrder*designEnergy/energies)))
+  # Normalize
+  photons = photons/sum(photons)
   visibilities = visibilities*photons
+  return(visibilities)
+}
+
+visibility.calcAbsVisibilities <- function(designEnergy, talbotOrder, energies) {
+  # Calculate normalized visibility for specific Talbot order, design energy. For all energies and number of photons
+  visibilities = (2/pi)*abs(sin((pi/2)*(designEnergy/energies))^2*sin((pi/2)*(talbotOrder*designEnergy/energies)))
   return(visibilities)
 }
 

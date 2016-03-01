@@ -10,7 +10,7 @@ shinyUI(fluidPage(
                  h4("Select interferometer settings"),
                  h5("Default is cone beam, inverse geometry with pi-shift phase grating"),
                  numericInput("designEnergy", label = h5("Design energy"),
-                              value = 45, min = 20, max = 120),
+                              value = 51, min = 20, max = 120),
                  numericInput("talbotOrder", label = h5("Talbot Order"),
                               value = 1, min = 1, max = 9, step = 1),
                  checkboxInput("piHalfShift", label = "pi-half shift", value = FALSE),
@@ -19,7 +19,7 @@ shinyUI(fluidPage(
                  # Set smalles pitch of grating corresponding to selected geometry
                  conditionalPanel(
                    condition = "input.geometry == 'Inverse'",
-                   numericInput("g0Pitch", label = h5("G0 pitch [um]"), value = 2, min = 1, step = 0.005)
+                   numericInput("g0Pitch", label = h5("G0 pitch [um]"), value = 2.4, min = 1, step = 0.005)
                    ),
                  conditionalPanel(
                    condition = "input.geometry == 'Conventional' || input.geometry == 'Symmetrical'",
@@ -27,7 +27,7 @@ shinyUI(fluidPage(
                    ),
                  conditionalPanel(
                    condition = "input.geometry == 'Conventional' || input.geometry == 'Inverse'",
-                   numericInput("G0G1Length", label = h5("G0 to G1 distance [mm]"), value = 200, min = 1, step = 1)
+                   numericInput("G0G1Length", label = h5("G0 to G1 distance [mm]"), value = 97.5, min = 1, step = 1)
                    )
                  ),
     
@@ -40,7 +40,7 @@ shinyUI(fluidPage(
                    column(3, tableOutput("distancesTable"))
                  ),
                  fluidRow(
-                   column(3, numericInput("sourceG0Distance", label = h5("Source to G0 distance [mm]"), value = 100, min = 10, step = 1)),
+                   column(3, numericInput("sourceG0Distance", label = h5("Source to G0 distance [mm]"), value = 149, min = 10, step = 1)),
                    column(3, numericInput("g1SampleDistance", label = h5("G1 to sample distance [mm]"), value = 10, min = 1, step = 1)),
                    column(3, numericInput("sampleDiameter", label = h5("Sample diameter [mm]"), value = 200, min = 0.1, step = 0.1))
                  ),
@@ -57,7 +57,7 @@ shinyUI(fluidPage(
                  ),
                  br(),
                  fluidRow(
-                   h5("G0 performance:")
+                   h5("G0 performance (not adapted to cone beam geometries!):")
                  ),
                  fluidRow(
                    column(3, h5("Transversal coherence length [um]:")),
@@ -90,7 +90,7 @@ shinyUI(fluidPage(
                               column(6, selectInput("filter", label = h5("Filter"), 
                                          choices = filters, selected = 1)),
                               column(6, numericInput("filterThickness", label = h5("Thickness [mm]"), 
-                                          value = 0.0, min = 0.0, step = 0.01))),
+                                          value = 2.4, min = 0.0, step = 0.01))),
                             plotOutput("filteredSpectrumCompared"),
                             plotOutput("filteredSpectrum")
                             ),
@@ -101,20 +101,21 @@ shinyUI(fluidPage(
                                change in spectrum"),
                             fluidRow(
                               column(6, selectInput("sample", label = h5("Sample type"), 
-                                                    choices = samples, selected = 1)),
+                                                    choices = samples, selected = 3)),
                               column(6, numericInput("sampleThickness", label = h5("Thickness [mm]"), 
-                                                     value = 0.0, min = 0.0, step = 0.1))),
+                                                     value = 200, min = 0.0, step = 0.1))),
                             plotOutput("sampledSpectrumCompared"),
                             plotOutput("sampledSpectrum"))
                    )
                  ),
-        tabPanel(h4("Visibility"),
-                 h5("Add choises for vis calc?, also currently vis independent og pi or pi-half phsae grating..."),
+        tabPanel(h4("Performance"),
                  fluidRow(
                    column(3, checkboxInput("includeFilterVisibility", label = "Add filter", value = FALSE)),
-                   column(3, checkboxInput("includeSampleVisibility", label = "Add sample", value = FALSE))),
+                   column(3, checkboxInput("includeSampleVisibility", label = "Add sample", value = FALSE))
+                 ),
                  tabsetPanel(
                    tabPanel(h4("Visibility"),
+                            h5("Add choises for vis calc?, also currently vis independent og pi or pi-half phsae grating..."),
                             fluidRow(
                               h5("Maximum visibility:"),
                               textOutput("MaximumVisibility")),
@@ -126,37 +127,70 @@ shinyUI(fluidPage(
                               column(6, 
                                      fluidRow(h5(paste("Maximum")),
                                               fluidRow(
-                                                dataTableOutput("OptTablotOrders")))))),
-                   tabPanel(h4("Talbot Carpet"),
-                            h5("Show interference pattern at talbot distance for whole spectrum, and sum. 
-                               allow selection of filter and sample"))
-                 )),
-        tabPanel(h4("Performance"),
-                 h4("System information"),
-                 fluidRow(
-                   column(3, selectInput("tissueSample", label = h5("Tissue sample"), 
-                                         choices = samples, selected = 1)),
-                   column(3, numericInput("pixelSize", label = h5("Pixel size a [um]"),
-                                          value = 75, min = 1, step = 1)),
-                   column(3, numericInput("absorptionEnergy", label = h5("Absorption energy Ep [keV]"),
-                                          value = 54, min = 15, max = 100))
-                 ),
-                 tabsetPanel(
-                   tabPanel(h4("General"),
-                            h5("Add sensitivity, maybe CNR etc. here...")
+                                                dataTableOutput("OptTablotOrders")))))
                             ),
                    tabPanel(h4("CT"),
 #                             h5("Add Raupach calc here, with filter and sample checkboxes. Add inprovements! 
 #                               And add source to detector and sample distances as options (compatible with GI setup?!)"),
+                            h4("System information"),
+                            fluidRow(
+                              column(3, numericInput("pixelSize", label = h5("Pixel size a [um]"),
+                                                     value = 75, min = 1, step = 1)),
+                              column(3, selectInput("tissueA", label = h5("Sample A"),
+                                                    choices = samples, selected = 1)),
+                              column(3, selectInput("tissueB", label = h5("Sample B"), 
+                                                    choices = samples, selected = 1))
+#                               column(3, numericInput("absorptionEnergy", label = h5("Absorption energy Ea [keV]"),
+#                                                      value = 54, min = 15, max = 100))
+                            ),
+                            fluidRow(
+                              column(3, checkboxInput("manualInput", label = "Manual input of dMu and dPhi (for design energy)", value = FALSE)),
+                              column(3, numericInput("deltaMu", label = h5("Delta mu for two different tissue types[1/cm]"),
+                                              value = 0.0098, min = 0.0001, step = 0.0001)),
+                              column(3, numericInput("deltaPhi", label = h5("Delta phi for two different tissue types[1/cm]"),
+                                              value = 11.42, min = 0.001, step = 0.001))
+                            ),
+#                             fluidRow(
+#                               column(3, checkboxInput("manualInput", label = "Manual input of dMu and dPhi (for design energy)", value = FALSE))
+#                             ),
+#                             fluidRow(
+#                               column(3, conditionalPanel(
+#                                 condition = "input.manualInput == TRUE",
+#                                 numericInput("deltaMu", label = h5("Delta mu for two different tissue types[1/cm]"),
+#                                              value = 0.0098, min = 0.0001, step = 0.0001))),
+#                               column(3, conditionalPanel(
+#                                 condition = "input.manualInput == TRUE",
+#                                 numericInput("deltaPhi", label = h5("Delta phi for two different tissue types[1/cm]"),
+#                                              value = 11.42, min = 0.001, step = 0.001)))
+#                             ),
                             h4("Parameters:"),
                             fluidRow(
                               column(3, numericInput("postAttenuationFactor", label = h5("Post-sample attenuation factor f ]1...2]"),
                                                      value = 2, min = 1.01, max = 2, step = 0.01)),
                               column(3, numericInput("reconstructionFactor", label = h5("Recostruction resolution factor gA ]0...0.5]"),
-                                                     value = 0.3, min = 0.01, max = 0.5, step = 0.01))
+                                                     value = 0.2, min = 0.01, max = 0.5, step = 0.01))
+                            ),
+#                             fluidRow(
+#                               imageOutput("raupachImage")
+#                             ),
+                            h5("Note: noise is missing, image too large. Issue: calc of detla (phi) and mu the same as paper values, nist, matlab sript etc...???"),
+                            fluidRow(
+                              column(3, h5("Design energy CNRp/CNRa:")),
+                              column(3, h5("Mean CNRp/CNRa:"))
+                            ),
+                            fluidRow(
+                              column(3, textOutput("ctCnrRatio")),
+                              column(3, textOutput("meanctCnrRatio")),
+                              column(3, textOutput("testVar"))
+                            ),
+                            fluidRow(
+                              column(9, plotOutput("cnrRatiosPlot"))
                             ),
                             imageOutput("raupachImage")
-                 ))))
+                   ),
+                   tabPanel(h4("General"),
+                           h5("Add sensitivity, maybe CNR etc. here...")
+                           ))))
     )
     
   )))

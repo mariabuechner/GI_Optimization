@@ -1,5 +1,5 @@
 filters = list.files(path="filters", pattern="*.csv")
-samples = list.files(path="samples", pattern="*.csv")
+samples = list.files(path="samples/mu", pattern="*.csv")
 
 filtering.readFilter <- function(inputFile) {
   # inputFile: .csv file according to the followng format
@@ -29,3 +29,20 @@ filtering.filterEnergies <- function(filter, filterThickness, energies, photons)
                                  photons = photons * exp(-interpolatedFilter$mu * filter$density[1] * filterThickness/10)) 
   return(filteredSpectrum)
 }
+
+# filtering.interpolateFilter <- function(filter, energies) {
+#   # Interpolate absorption coefficients to eneries of input spectrum
+#   interpolatedFilter = approx(filter$energy, filter$mu, energies)
+#   # Make data frame
+#   interpolatedFilter = data.frame(interpolatedFilter)
+#   # Rename entries
+#   names(interpolatedFilter) <- c("energy", "mu")
+#   interpolatedFilter <- cbind(interpolatedFilter,filter$density)
+#   return(interpolatedFilter)
+# }
+# 
+# filtering.filterEnergies <- function(interpolatedFilter, filterThickness, photons) {
+#   filteredSpectrum <- data.frame(energy = interpolatedFilter$energy,
+#                                  photons = photons * exp(-interpolatedFilter$mu * interpolatedFilter$density[1] * filterThickness/10)) 
+#   return(filteredSpectrum)
+# }
