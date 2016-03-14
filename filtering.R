@@ -15,7 +15,11 @@ filtering.readFilter <- function(inputFile) {
 
 filtering.interpolateFilter <- function(filter, energies) {
   # Interpolate absorption coefficients to eneries of input spectrum
-  interpolatedFilter = approx(filter$energy, filter$mu, energies)
+  # Interploate log(mu), since linear interpolation and mu goes linear with energy
+  log_mu = log(filter$mu)
+  interpolatedFilter = approx(filter$energy, log_mu, energies)
+  # Convert back to mu
+  interpolatedFilter$y = exp(interpolatedFilter$y)
   # Make data frame
   interpolatedFilter = data.frame(interpolatedFilter)
   # Rename entries
