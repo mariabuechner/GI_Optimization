@@ -117,7 +117,7 @@ shinyUI(fluidPage(
                    tabPanel(h4("Visibility"),
                             h5("Add choises for vis calc?, also currently vis independent og pi or pi-half phsae grating..."),
                             fluidRow(
-                              h5("Maximum visibility:"),
+                              h5("Maximum total visibility:"),
                               textOutput("MaximumVisibility")),
                             fluidRow(
                               column(6, plotOutput("Spectrum")),
@@ -125,7 +125,7 @@ shinyUI(fluidPage(
                             fluidRow(
                               column(6, plotOutput("MaxVisibilities")),
                               column(6, 
-                                     fluidRow(h5(paste("Maximum")),
+                                     fluidRow(h5(paste("Maximum total visibility")),
                                               fluidRow(
                                                 dataTableOutput("OptTablotOrders")))))
                             ),
@@ -176,12 +176,12 @@ shinyUI(fluidPage(
                             h5("Note: noise is missing, image too large. Issue: calc of detla (phi) and mu the same as paper values, nist, matlab sript etc...???"),
                             fluidRow(
                               column(3, h5("Design energy CNRp/CNRa:")),
-                              column(3, h5("Mean CNRp/CNRa:"))
+                              column(3, h5("Mean CNRp/CNRa (weighted with spectrum):"))
                             ),
                             fluidRow(
                               column(3, textOutput("ctCnrRatio")),
-                              column(3, textOutput("meanctCnrRatio")),
-                              column(3, textOutput("testVar"))
+                              column(3, textOutput("meanctCnrRatio"))#,
+                              #column(3, textOutput("testVar"))
                             ),
                             fluidRow(
                               column(9, plotOutput("cnrRatiosPlot"))

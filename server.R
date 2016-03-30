@@ -116,7 +116,11 @@ shinyServer(function(input, output) {
     filtering.readFilter(paste("samples/mu/",input$sample,sep=""))
   })
   sampleSpectrum <- reactive({
-    filtering.filterEnergies(inputSample(), input$sampleThickness, filterSpectrum()$energy, filterSpectrum()$photons)
+    spectrum = inputSpectrum()
+    if (input$includeFilterVisibility == TRUE) {
+      spectrum = filterSpectrum()
+    }
+    filtering.filterEnergies(inputSample(), input$sampleThickness, spectrum$energy, spectrum$photons)
   })
   
 #   # Filter
@@ -279,34 +283,41 @@ shinyServer(function(input, output) {
     return(phis)
   }
   
-  output$testVar <- renderText({
-    #     currentSample = filtering.interpolateFilter(inputSample(),currentSpectrum()$energy)
-    #     mus = currentSample$mu[currentSpectrum()$energy] * inputSample()$density[1]
-    #     deltas = deltas()$delta[currentSpectrum()$energy]
-    #     lambdas = geometry.calcWavelength(currentSpectrum()$energy)
-    #     phis = 2*pi*deltas/lambdas # [1/um]
-    #     mus = mus*1e-4 # [1/um]
-#     currentSample = filtering.interpolateFilter(inputSample(), input$designEnergy)
-#     mu = currentSample$mu * inputSample()$density[1]
-#     delta = deltas()$delta[input$designEnergy]
-#     lambda = geometry.calcWavelength(input$designEnergy)
-#     mu = mu*1e-4
-#     phi = 2*pi*delta/lambda
-#     beta = mu*lambda/(4*pi)
-#     cbind(beta)
-#     #mu = calcMus(input$tissueA, input$designEnergy)
-#     filterA = filtering.readFilter(paste("samples/mu/",input$tissueA,sep=""))
-#     sampleA = filtering.interpolateFilter(filterA, input$designEnergy)
-#     muA = sampleA$mu * filterA$density[1]
-#     filterB = filtering.readFilter(paste("samples/mu/",input$tissueB,sep=""))
-#     sampleB = filtering.interpolateFilter(filterB, input$designEnergy)
-#     muB = sampleB$mu * filterB$density[1]
-#     mu = abs(muA-muB)
-#     #phi = abs(calcPhis(input$tissueA, input$designEnergy) - calcPhis(input$tissueB, input$designEnergy))
-    #designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1)
-    #absVisibilities()
-    sum(currentSpectrum()$photons)
-})
+  currentPhotons <- reactive({
+    photons = currentSpectrum()$photons
+  })
+  
+#   output$testVar <- renderText({
+#     #     currentSample = filtering.interpolateFilter(inputSample(),currentSpectrum()$energy)
+#     #     mus = currentSample$mu[currentSpectrum()$energy] * inputSample()$density[1]
+#     #     deltas = deltas()$delta[currentSpectrum()$energy]
+#     #     lambdas = geometry.calcWavelength(currentSpectrum()$energy)
+#     #     phis = 2*pi*deltas/lambdas # [1/um]
+#     #     mus = mus*1e-4 # [1/um]
+# #     currentSample = filtering.interpolateFilter(inputSample(), input$designEnergy)
+# #     mu = currentSample$mu * inputSample()$density[1]
+# #     delta = deltas()$delta[input$designEnergy]
+# #     lambda = geometry.calcWavelength(input$designEnergy)
+# #     mu = mu*1e-4
+# #     phi = 2*pi*delta/lambda
+# #     beta = mu*lambda/(4*pi)
+# #     cbind(beta)
+# #     #mu = calcMus(input$tissueA, input$designEnergy)
+# #     filterA = filtering.readFilter(paste("samples/mu/",input$tissueA,sep=""))
+# #     sampleA = filtering.interpolateFilter(filterA, input$designEnergy)
+# #     muA = sampleA$mu * filterA$density[1]
+# #     filterB = filtering.readFilter(paste("samples/mu/",input$tissueB,sep=""))
+# #     sampleB = filtering.interpolateFilter(filterB, input$designEnergy)
+# #     muB = sampleB$mu * filterB$density[1]
+# #     mu = abs(muA-muB)
+# #     #phi = abs(calcPhis(input$tissueA, input$designEnergy) - calcPhis(input$tissueB, input$designEnergy))
+#     #designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1)
+#     #absVisibilities()
+#     #photons = currentSpectrum()$photons
+#     #photons = photons/sum(photons)
+#     #sum(cnrRatios()*photons, na.rm=TRUE)
+#     100*absVisibilities()
+# })
 
 #   calcDeltaMus <- reactive({
 #     filterA = filtering.readFilter(paste("samples/mu/",input$tissueA,sep=""))
@@ -342,61 +353,51 @@ shinyServer(function(input, output) {
       smallestPitch = inputGI()$p2
     }
     lambdas = geometry.calcWavelength(currentSpectrum()$energy)
+    
+    filterA = filtering.readFilter(paste("samples/mu/",input$tissueA,sep=""))
+    tissueA = filtering.interpolateFilter(filterA,currentSpectrum()$energy)
+    musA <- tissueA$mu[currentSpectrum()$energy] * filterA$density[1]
+    filterB = filtering.readFilter(paste("samples/mu/",input$tissueB,sep=""))
+    tissueB = filtering.interpolateFilter(filterB,currentSpectrum()$energy)
+    musB <- tissueB$mu[currentSpectrum()$energy] * filterB$density[1]
+    mus = abs(musA-musB)
     #mus = abs(calcMus(input$tissueA, currentSpectrum()$energy) - calcMus(input$tissueB, currentSpectrum()$energy))
     phis = abs(calcPhis(input$tissueA, currentSpectrum()$energy) - calcPhis(input$tissueB, currentSpectrum()$energy))
-    currentSample = filtering.interpolateFilter(inputSample(),currentSpectrum()$energy)
-    mus <- currentSample$mu[currentSpectrum()$energy] * inputSample()$density[1]
-#     deltas = deltas()$delta[currentSpectrum()$energy]
-#     phis = 2*pi*deltas/lambdas # [1/um]
-#     phis = phis * 10000 # [1/cm]
-#     mus = calcDeltaMus()
-#     phis = calcDeltaPhis()
-    cnr = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, 100*absVisibilities(), distance, smallestPitch, lambdas, mus, phis)
+    
+    cnr = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, absVisibilities(), distance, smallestPitch, lambdas, mus, phis)
   })
   
   output$meanctCnrRatio <- renderText({
     #mean(cnrRatios())
     photons = currentSpectrum()$photons/sum(currentSpectrum()$photons)
-    sum(cnrRatios()*photons)
+    sum(cnrRatios()*photons, na.rm=TRUE)
   })
   
   output$ctCnrRatio <- renderText({
-    designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1)
-    if (input$geometry == "Inverse") {
-      distance = inputGI()$G0G1
-      smallestPitch = inputGI()$p0
-    }
-    else {
-      distance = inputGI()$G1G2
-      smallestPitch = inputGI()$p2
-    }
-    lambda = geometry.calcWavelength(input$designEnergy)
     if (input$manualInput == TRUE) {
+      MaximumVisibilities = visibility.MaxVisibilityEnergies(input$talbotOrder, currentSpectrum()$energy, currentSpectrum()$photons)
+      maxVisibilityInput = cbind(currentSpectrum()['energy'], maxVis = MaximumVisibilities)
+      designEnergyIndex = match(input$designEnergy, maxVisibilityInput$energy)
+      designVisibility = maxVisibilityInput$maxVis[designEnergyIndex]
+      #designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1) # Not working correctly
+      if (input$geometry == "Inverse") {
+        distance = inputGI()$G0G1
+        smallestPitch = inputGI()$p0
+      }
+      else {
+        distance = inputGI()$G1G2
+        smallestPitch = inputGI()$p2
+      }
+      lambda = geometry.calcWavelength(input$designEnergy)
       mu = input$deltaMu
       phi = input$deltaPhi
+      cnrRatio = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, designVisibility, distance, smallestPitch, lambda, mu, phi)
     }
     else {
-      #mu = abs(calcMus(input$tissueA, input$designEnergy) - calcMus(input$tissueB, input$designEnergy))
-      phi = abs(calcPhis(input$tissueA, input$designEnergy) - calcPhis(input$tissueB, input$designEnergy))
-      filterA = filtering.readFilter(paste("samples/mu/",input$tissueA,sep=""))
-      sampleA = filtering.interpolateFilter(filterA, input$designEnergy)
-      muA = sampleA$mu * filterA$density[1]
-      filterB = filtering.readFilter(paste("samples/mu/",input$tissueB,sep=""))
-      sampleB = filtering.interpolateFilter(filterB, input$designEnergy)
-      muB = sampleB$mu * filterB$density[1]
-      mu = abs(muA-muB)
-#       deltaA = performance.readDelta(paste("samples/delta/",input$tissueA,sep=""))
-#       deltaA = deltaA$delta[input$designEnergy]
-#       phiA = 2*pi*deltaA/lambda # [1/um]
-#       phiA = phiA * 10000 # [1/cm]
-#       deltaB = performance.readDelta(paste("samples/delta/",input$tissueB,sep=""))
-#       deltaB = deltaB$delta[input$designEnergy]
-#       phiB = 2*pi*deltaB/lambda # [1/um]
-#       phiB = phiB * 10000 # [1/cm]
-#       phi = abs(phiA-phiB)
+      cnrInput = cbind(currentSpectrum()['energy'], cnr=cnrRatios())
+      cnrInputIndex = match(input$designEnergy, cnrInput$energy)
+      cnrRatio = cnrInput$cnr[cnrInputIndex]
     }
-    # cnrRatio = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, designVisibility, distance, smallestPitch, lambda, input$deltaMu, input$deltaPhi)
-    cnrRatio = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, designVisibility, distance, smallestPitch, lambda, mu, phi)
     return(cnrRatio)
   })
   
