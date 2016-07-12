@@ -27,11 +27,11 @@ parameters.gi.g0_g2             = 80;       % [cm], total GI length
 
 % Source:
 parameters.source.geometry      = 'cone';   % ['cone', 'parallel']
-parameters.source.flux          = 15000;    % [photons/(pixel * s)], sum
-                                            % over spectrum range
-                                            % If [0], keep normaliazed
-parameters.source.flux_range    = [18:35];  % [keV], Energy range of flux 
-                                            % count
+% parameters.source.flux          = 15000;    % [photons/(pixel * s)], sum
+%                                             % over spectrum range
+%                                             % If [0], keep normaliazed
+% parameters.source.flux_range    = [18:35];  % [keV], Energy range of flux 
+%                                             % count
 spectrum_name                   = 'Mammo70kV.csv';
 
 % Detector:
@@ -48,6 +48,8 @@ parameters.physics.add_noise    = true;     % [true, false]
 parameters.gi.g0_g1 = parameters.gi.g0_g1*1e4;  % [um]
 parameters.gi.g1_g2 = parameters.gi.g1_g2*1e4;  % [um]
 parameters.gi.g0_g2 = parameters.gi.g0_g2*1e4;  % [um]
+% calculate remaining GI parameters
+parameters.gi = calculate_gi(parameters.gi);
 
 % Source:
 parameters.source.spectrum = read_spectrum(fullfile(pwd,'spectra', ...
@@ -55,10 +57,10 @@ parameters.source.spectrum = read_spectrum(fullfile(pwd,'spectra', ...
                                             % Energy [kev] and normalized
                                             % spectrum (photon density 
                                             % distribution)
-% Fit spectrum to flux (if flux not zero)
-if parameters.source.flux
-    parameters.source.spectrum = blabla(parameters.source.spectrum)
-end
+% % Fit spectrum to flux (if flux not zero)
+% if parameters.source.flux
+%     parameters.source.spectrum = blabla(parameters.source.spectrum)
+% end
 
 % Detector:
 parameters.detector.pixel_area  = parameters.detector.pixel_size^2;
