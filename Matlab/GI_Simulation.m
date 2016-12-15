@@ -10,23 +10,40 @@ addpath(genpath(pwd));
 % GI:
 parameters.gi.design_energy     = 30;       % [keV]
 parameters.gi.talbot_order      = 3;        % []
-parameters.gi.g0                = true;     % [true, false]
+parameters.gi.g0                = true;     % [true]
 parameters.gi.g1_type           = 'pi';     % ['pi','pi-half']
+parameters.gi.geometry          = 'inverse';% ['inverse','symmetric',
+                                            %  'conventional']
 % phase stepping
 parameters.gi.number_steps      = 9;        % []
 parameters.gi.number_period     = 1;        % []
 % gratings
-% choose one pitch, set 0 others
-parameters.gi.p0                = 3;        % [um]
-parameters.gi.p1                = 0;        % [um]
-parameters.gi.p2                = 0;        % [um]
-% choose one distance, set 0 others
-parameters.gi.g0_g1             = 0;        % [cm]
-parameters.gi.g1_g2             = 0;        % [cm]
-parameters.gi.g0_g2             = 80;       % [cm], total GI length
+% choose smallest pitch:
+%   p0 for inverse
+%   p0, p1 or p2 for symmetric (other set to 0)
+%   p2 ??? for conventional
+% and fixed distance:
+%   g0_g1 for inverse
+%   none
+%   ??? for conventional
+switch parameters.gi.geometry
+    case 'inverse'
+        parameters.gi.p0        = 3;        % [um]
+        parameters.gi.g0_g1     = 250;      % [mm]
+    case 'symmetric'
+        parameters.gi.p0        = 4;        % [um]
+        parameters.gi.p1        = 0;        % [um]
+        parameters.gi.p2        = 0;        % [um]
+    case 'conventional'
+        parameters.gi.p2        = 3;        % [um]
+end
+% choose one distance, set others to 0
+parameters.gi.g0_g1             = 0;        % [mm]
+parameters.gi.g0_g2             = 800;      % [mm], total GI length
 
 % Source:
-parameters.source.geometry      = 'cone';   % ['cone', 'parallel']
+% Size equal to p0/2 if G0 is used
+parameters.source.geometry      = 'cone';   % ['cone']
 % parameters.source.flux          = 15000;    % [photons/(pixel * s)], sum
 %                                             % over spectrum range
 %                                             % If [0], keep normaliazed
@@ -45,9 +62,12 @@ parameters.physics.add_noise    = true;     % [true, false]
 %% Complete and convert ;parameters
 
 % GI:
-parameters.gi.g0_g1 = parameters.gi.g0_g1*1e4;  % [um]
-parameters.gi.g1_g2 = parameters.gi.g1_g2*1e4;  % [um]
-parameters.gi.g0_g2 = parameters.gi.g0_g2*1e4;  % [um]
+if strcmp(parameters.gi.g1_type,'pi-half')
+    parameters.gi.phase_factor = 1;
+else
+    parameters.gi.phase_factor = 2;
+end
+
 % calculate remaining GI parameters
 parameters.gi = calculate_gi(parameters.gi);
 
