@@ -364,7 +364,20 @@ shinyServer(function(input, output) {
     #mus = abs(calcMus(input$tissueA, currentSpectrum()$energy) - calcMus(input$tissueB, currentSpectrum()$energy))
     phis = abs(calcPhis(input$tissueA, currentSpectrum()$energy) - calcPhis(input$tissueB, currentSpectrum()$energy))
     
-    cnr = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, absVisibilities(), distance, smallestPitch, lambdas, mus, phis)
+    if (input$manualInput == TRUE) {
+      vis = input$manualVis/100
+    }
+    else {
+      vis = absVisibilities()
+    }
+    cnr = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize/2, input$postAttenuationFactor, vis, distance, smallestPitch, lambdas, mus, phis)
+  })
+  
+  output$designVis <- renderText({
+    visInput = cbind(currentSpectrum()['energy'], dVis=absVisibilities())
+    visInputIndex = match(input$designEnergy, visInput$energy)
+    vis = visInput$dVis[visInputIndex]
+    return(vis*100)
   })
   
   output$meanctCnrRatio <- renderText({
@@ -374,30 +387,33 @@ shinyServer(function(input, output) {
   })
   
   output$ctCnrRatio <- renderText({
-    if (input$manualInput == TRUE) {
-      MaximumVisibilities = visibility.MaxVisibilityEnergies(input$talbotOrder, currentSpectrum()$energy, currentSpectrum()$photons)
-      maxVisibilityInput = cbind(currentSpectrum()['energy'], maxVis = MaximumVisibilities)
-      designEnergyIndex = match(input$designEnergy, maxVisibilityInput$energy)
-      designVisibility = maxVisibilityInput$maxVis[designEnergyIndex]
-      #designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1) # Not working correctly
-      if (input$geometry == "Inverse") {
-        distance = inputGI()$G0G1
-        smallestPitch = inputGI()$p0
-      }
-      else {
-        distance = inputGI()$G1G2
-        smallestPitch = inputGI()$p2
-      }
-      lambda = geometry.calcWavelength(input$designEnergy)
-      mu = input$deltaMu
-      phi = input$deltaPhi
-      cnrRatio = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, designVisibility, distance, smallestPitch, lambda, mu, phi)
-    }
-    else {
-      cnrInput = cbind(currentSpectrum()['energy'], cnr=cnrRatios())
-      cnrInputIndex = match(input$designEnergy, cnrInput$energy)
-      cnrRatio = cnrInput$cnr[cnrInputIndex]
-    }
+#     if (input$manualInput == TRUE) {
+#       MaximumVisibilities = visibility.MaxVisibilityEnergies(input$talbotOrder, currentSpectrum()$energy, currentSpectrum()$photons)
+#       maxVisibilityInput = cbind(currentSpectrum()['energy'], maxVis = MaximumVisibilities)
+#       designEnergyIndex = match(input$designEnergy, maxVisibilityInput$energy)
+#       designVisibility = maxVisibilityInput$maxVis[designEnergyIndex]
+#       #designVisibility = visibility.MaxVisibilityEnergies(input$talbotOrder, input$designEnergy, 1) # Not working correctly
+#       if (input$geometry == "Inverse") {
+#         distance = inputGI()$G0G1
+#         smallestPitch = inputGI()$p0
+#       }
+#       else {
+#         distance = inputGI()$G1G2
+#         smallestPitch = inputGI()$p2
+#       }
+#       lambda = geometry.calcWavelength(input$designEnergy)
+#       mu = input$deltaMu
+#       phi = input$deltaPhi
+#       cnrRatio = performance.calcCNRRatio(input$reconstructionFactor, input$pixelSize, input$postAttenuationFactor, designVisibility, distance, smallestPitch, lambda, mu, phi)
+#     }
+#     else {
+#       cnrInput = cbind(currentSpectrum()['energy'], cnr=cnrRatios())
+#       cnrInputIndex = match(input$designEnergy, cnrInput$energy)
+#       cnrRatio = cnrInput$cnr[cnrInputIndex]
+#     }
+    cnrInput = cbind(currentSpectrum()['energy'], cnr=cnrRatios())
+    cnrInputIndex = match(input$designEnergy, cnrInput$energy)
+    cnrRatio = cnrInput$cnr[cnrInputIndex]
     return(cnrRatio)
   })
   

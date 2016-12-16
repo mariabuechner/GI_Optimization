@@ -6,11 +6,11 @@ shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(h4("Select spectrum"),
                  selectInput("spectrum", label = h5("Spectrum"), 
-                             choices = spectra, selected = 1),
+                             choices = spectra, selected = 3),
                  h4("Select interferometer settings"),
                  h5("Default is cone beam, inverse geometry with pi-shift phase grating"),
                  numericInput("designEnergy", label = h5("Design energy"),
-                              value = 51, min = 20, max = 120),
+                              value = 45, min = 20, max = 120),
                  numericInput("talbotOrder", label = h5("Talbot Order"),
                               value = 1, min = 1, max = 9, step = 1),
                  checkboxInput("piHalfShift", label = "pi-half shift", value = FALSE),
@@ -19,15 +19,15 @@ shinyUI(fluidPage(
                  # Set smalles pitch of grating corresponding to selected geometry
                  conditionalPanel(
                    condition = "input.geometry == 'Inverse'",
-                   numericInput("g0Pitch", label = h5("G0 pitch [um]"), value = 2.4, min = 1, step = 0.005)
+                   numericInput("g0Pitch", label = h5("G0 pitch [um]"), value =4, min = 1, step = 0.005)
                    ),
                  conditionalPanel(
                    condition = "input.geometry == 'Conventional' || input.geometry == 'Symmetrical'",
-                   numericInput("g2Pitch", label = h5("G2 pitch [um]"), value = 2, min = 1, step = 0.005)
+                   numericInput("g2Pitch", label = h5("G2 pitch [um]"), value = 4, min = 1, step = 0.005)
                    ),
                  conditionalPanel(
                    condition = "input.geometry == 'Conventional' || input.geometry == 'Inverse'",
-                   numericInput("G0G1Length", label = h5("G0 to G1 distance [mm]"), value = 97.5, min = 1, step = 1)
+                   numericInput("G0G1Length", label = h5("G0 to G1 distance [mm]"), value = 200, min = 1, step = 1)
                    )
                  ),
     
@@ -40,7 +40,7 @@ shinyUI(fluidPage(
                    column(3, tableOutput("distancesTable"))
                  ),
                  fluidRow(
-                   column(3, numericInput("sourceG0Distance", label = h5("Source to G0 distance [mm]"), value = 149, min = 10, step = 1)),
+                   column(3, numericInput("sourceG0Distance", label = h5("Source to G0 distance [mm]"), value = 100, min = 10, step = 1)),
                    column(3, numericInput("g1SampleDistance", label = h5("G1 to sample distance [mm]"), value = 10, min = 1, step = 1)),
                    column(3, numericInput("sampleDiameter", label = h5("Sample diameter [mm]"), value = 200, min = 0.1, step = 0.1))
                  ),
@@ -144,25 +144,21 @@ shinyUI(fluidPage(
 #                                                      value = 54, min = 15, max = 100))
                             ),
                             fluidRow(
-                              column(3, checkboxInput("manualInput", label = "Manual input of dMu and dPhi (for design energy)", value = FALSE)),
                               column(3, numericInput("deltaMu", label = h5("Delta mu for two different tissue types[1/cm]"),
                                               value = 0.0098, min = 0.0001, step = 0.0001)),
                               column(3, numericInput("deltaPhi", label = h5("Delta phi for two different tissue types[1/cm]"),
                                               value = 11.42, min = 0.001, step = 0.001))
                             ),
-#                             fluidRow(
-#                               column(3, checkboxInput("manualInput", label = "Manual input of dMu and dPhi (for design energy)", value = FALSE))
-#                             ),
-#                             fluidRow(
-#                               column(3, conditionalPanel(
-#                                 condition = "input.manualInput == TRUE",
-#                                 numericInput("deltaMu", label = h5("Delta mu for two different tissue types[1/cm]"),
-#                                              value = 0.0098, min = 0.0001, step = 0.0001))),
-#                               column(3, conditionalPanel(
-#                                 condition = "input.manualInput == TRUE",
-#                                 numericInput("deltaPhi", label = h5("Delta phi for two different tissue types[1/cm]"),
-#                                              value = 11.42, min = 0.001, step = 0.001)))
-#                             ),
+                            fluidRow(
+                              column(3, checkboxInput("manualInput", label = "Manual input of visbility", value = FALSE)),
+                              column(3, conditionalPanel(
+                                condition = "input.manualInput == TRUE",
+                                numericInput("manualVis", label = h5("Visibility in %"),
+                                             value = 10, min = 1, max = 100, step = 1))),
+                              column(3, 
+                                     fluidRow(h5("Visibility at design energy [%]:")),
+                                     fluidRow(textOutput("designVis")))
+                            ),
                             h4("Parameters:"),
                             fluidRow(
                               column(3, numericInput("postAttenuationFactor", label = h5("Post-sample attenuation factor f ]1...2]"),
